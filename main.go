@@ -6,13 +6,12 @@ import (
 	"path/filepath"
 )
 
+// Function for reference of remove unnecessary files, mostly for .DS_Store.
+// Please note that, the unnecessary file definition is only set in hardcoded.
 func isUnnecessaryFiles(filename string) bool {
-	// Function for reference of remove unnecessary files, mostly for .DS_Store
-	// The unnecessary file only set in hardcoded
+	unnecessaryFiles := []string{".DS_Store"}
 
-	unnecessary_files := []string{".DS_Store"}
-
-	for _, item := range unnecessary_files {
+	for _, item := range unnecessaryFiles {
 		if item == filename {
 			return true
 		}
@@ -21,33 +20,46 @@ func isUnnecessaryFiles(filename string) bool {
 	return false
 }
 
-func RemoveAllEmptyDir2(root_dir string) {
-	fmt.Printf("Start checking Empty Directory. Getting All Directory...\n")
-	var dir_list []string
+// Get all absolute paths in rootDir.
+// If any unnecessary files are found, this function will remove these files.
+func getEmptyDir(rootDir string) []string {
+	var directories []string
 
 	// Remove all unnecessary_files and get directory structure
-	filepath.Walk(root_dir, func(path string, info os.FileInfo, err error) error {
-		//fmt.Printf("Current Walking: %s\n", path)
+	filepath.Walk(rootDir, func(path string, info os.FileInfo, err error) error {
+
+		// Unnecessary files Detected
 		if isUnnecessaryFiles(info.Name()) {
-			// Unnecessary files Detected
 			os.Remove(path)
-			fmt.Printf("Unneccessary File Detected and Deleted: %s\n", path)
+			fmt.Printf("Unnecessary File Detected and Deleted: %s\n", path)
 		}
+
+		// Record directory
 		if info.IsDir() {
-			dir_list = append(dir_list, path)
+			directories = append(directories, path)
 		}
+
 		return nil
 	})
 
-	for len(dir_list) > 0 {
-		// Wait list to check the directory again
-		wait_list := make(map[string]struct{})
-		for _, directory := range dir_list {
-			//fmt.Printf("Current Checking Directory: %s\n", directory)
+	return directories
+}
 
+// Remove all empty directories in the root directory.
+func RemoveAllEmptyDir(rootDir string) {
+	fmt.Printf("Start checking Empty Directory. Getting All Directory...\n")
+
+	// Get directory list
+	directories := getEmptyDir(rootDir)
+
+	// Loop through directories
+	for len(directories) > 0 {
+		// Wait list to check the directory again
+		waitingList := make(map[string]struct{})
+
+		for _, directory := range directories {
 			// Get file count in current checking directory
 			files, _ := os.ReadDir(directory)
-			//fmt.Printf("Current File Count: %d\n", len(files))
 
 			// Remove directory if it is empty
 			if len(files) == 0 {
@@ -61,21 +73,20 @@ func RemoveAllEmptyDir2(root_dir string) {
 
 				// Put upper folder to wait list
 				fmt.Printf("Upper Folder: %s Added to Wait list\n", filepath.Dir(directory))
-				wait_list[filepath.Dir(directory)] = struct{}{}
+				waitingList[filepath.Dir(directory)] = struct{}{}
 			}
 		}
 
 		// Use Wait list to replace the dir_list to allow looping
-		dir_list = make([]string, 0)
-		for key := range wait_list {
-			dir_list = append(dir_list, key)
+		directories = make([]string, 0)
+		for key := range waitingList {
+			directories = append(directories, key)
 		}
 
-		fmt.Printf("Wait List: %s\n", dir_list)
-		if len(dir_list) > 0 {
+		fmt.Printf("Wait List: %s\n", directories)
+		if len(directories) > 0 {
 			fmt.Printf("Perform Search Again...\n\n")
 		}
-
 	}
 
 	// Notify the process is completed
@@ -85,7 +96,7 @@ func RemoveAllEmptyDir2(root_dir string) {
 
 func main() {
 	current_dir, _ := os.Getwd()
-	RemoveAllEmptyDir2(current_dir)
+	RemoveAllEmptyDir(current_dir)
 	fmt.Println("Press Enter to leave...")
 	fmt.Scanln()
 }
