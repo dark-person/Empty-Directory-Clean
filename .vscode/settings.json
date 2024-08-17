@@ -1,0 +1,26 @@
+{
+	"cSpell.customDictionaries": {
+		"package-dictionary": {
+			"name": "package dictionary",
+			"path": "./.vscode/package-dictionary.txt",
+			"addWords": true,
+			"scope": "workspace"
+		}
+	},
+	"cSpell.languageSettings": [
+		{ "languageId": "go", "allowCompoundWords": false, "dictionaries": ["go"] }
+	],
+	"cSpell.ignorePaths": [
+		"vscode-extension",
+		".git/objects",
+		".vscode",
+		".vscode-insiders"
+	],
+	"editor.formatOnSave": true,
+	"[json]": {
+		"editor.defaultFormatter": "vscode.json-language-features"
+	},
+	"[yaml]": {
+		"editor.defaultFormatter": "redhat.vscode-yaml"
+	}
+}
